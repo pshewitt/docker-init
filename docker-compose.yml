@@ -173,3 +173,17 @@ services:
       - "6901:6901"
     volumes:
       - /storage:/storage
+
+  hydra:
+    container_name: hydra2
+    image: linuxserver/hydra2
+    restart: always
+    ports:
+      - "5076:5076"
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /config/hydra2:/config
+      - /downloads:/downloads
