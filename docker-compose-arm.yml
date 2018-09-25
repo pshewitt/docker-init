@@ -1,0 +1,147 @@
+version: '2.1'
+services:
+  nzbget:
+    container_name: nzbget
+    image: lsioarmhf/nzbget
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /config/nzbget:/config
+      - /storage:/storage
+      - /downloads:/downloads
+
+  plexmediaserver:
+    container_name: plexmediaserver
+    image: lsioarmhf/plex
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=GB
+      - VERSION=latest
+      - PLEX_UID=0
+      - PLEX_GID=0
+    volumes:
+      - /config/plexmediaserver:/config
+      - /storage/0/TV_Shows:/data/tvshows
+      - /storage/0/Videos:/data/movies
+      - /storage/0/Audio:/data/music
+      - /storage/0/JW:/data/JW
+      - /storage/0/tvheadend/dvr-dad:/data/tvrecordings
+      - /storage/0/tvheadend/F1:/data/F1
+      - /tmp/transcode:/transcode
+      - /tmp:/tmp
+
+  tautulli:
+    container_name: tautulli
+    image: lsioarmhf/tautulli
+    restart: always
+    depends_on:
+      - plexmediaserver
+    ports:
+      - "8182:8181"
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /config/tautulli:/config
+      - /config/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro
+
+  sonarr:
+    container_name: sonarr
+    image: lsioarmhf/sonarr
+    restart: always
+    depends_on:
+      - plexmediaserver
+      - nzbget
+    ports:
+      - "8989:8989"
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /config/sonarr:/config
+      - /storage/0/TV_Shows:/tv
+      - /downloads:/downloads
+
+  radarr:
+    container_name: radarr
+    image: lsioarmhf/radarr
+    restart: always
+    depends_on:
+      - plexmediaserver
+      - nzbget
+    ports:
+      - "7878:7878"
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro 
+      - /config/radarr:/config 
+      - /storage/0/Videos:/movies 
+      - /downloads:/downloads 
+
+  letsencrypt:
+    container_name: letsencrypt
+    image: lsioarmhf/letsencrypt
+    restart: always
+    ports:
+      - "780:80"
+      - "7443:443"
+    environment:
+      - TZ=GB
+      - PUID=33
+      - PGID=33
+      - EMAIL=p.s.hewitt@gmail.com
+      - URL=bastion76.com
+      - SUBDOMAINS=www,13a,hass,xfce,home
+    volumes:
+      - /config/webserver:/config
+ 
+  tvheadend:
+    container_name: tvheadend
+    image: lsioarmhf/tvheadend
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=GB
+      - PUID=44
+      - PGID=128
+    volumes:
+      - /config/tvheadend:/config
+      - /storage/0/tvheadend:/recordings
+
+
+  home-assistant:
+    container_name: home-assistant
+    image: homeassistant/armhf-homeassistant
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /etc/localtime:/etc/localtime:ro 
+      - /config/home-assistant:/config
+      - /storage:/btrfs
+
+  watchtower:
+    container_name: watchtower
+    image: v2tec/rpi-watchtower
+    restart: always
+    network_mode: host
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
