@@ -21,9 +21,9 @@ services:
     network_mode: host
     environment:
       - TZ=GB
-      - VERSION=latest
-      - PLEX_UID=0
-      - PLEX_GID=0
+      - VERSION=lastest
+      - PUID=0
+      - PGID=0
     volumes:
       - /config/plexmediaserver:/config
       - /storage/0/TV_Shows:/data/tvshows
@@ -32,10 +32,9 @@ services:
       - /storage/0/JW:/data/JW
       - /storage/0/tvheadend/dvr-dad:/data/tvrecordings
       - /storage/0/tvheadend/F1:/data/F1
-      - /tmp/transcode:/transcode
       - /tmp:/tmp
     devices:
-      - "/dev/dri:/dev/dri"
+      - /dev/dri:/dev/dri
 
   tautulli:
     container_name: tautulli
@@ -166,16 +165,16 @@ services:
     volumes:
       - /storage/0/timecapsule/backup:/backup
 
-  desktop:
-    container_name: desktop
-    image: consol/centos-xfce-vnc
-    ports:
-      - "5901:5901"
-      - "6901:6901"
-    volumes:
-      - /storage:/storage
+  #desktop:
+  #  container_name: desktop
+  #  image: consol/centos-xfce-vnc
+  #  ports:
+  #    - "5901:5901"
+  #    - "6901:6901"
+  #  volumes:
+  #    - /storage:/storage
 
-  hydra:
+  hydra2:
     container_name: hydra2
     image: linuxserver/hydra2
     restart: always

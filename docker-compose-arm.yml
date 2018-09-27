@@ -22,8 +22,8 @@ services:
     environment:
       - TZ=GB
       - VERSION=latest
-      - PLEX_UID=0
-      - PLEX_GID=0
+      - PUID=0
+      - PGID=0
     volumes:
       - /config/plexmediaserver:/config
       - /storage/0/TV_Shows:/data/tvshows
