@@ -1,10 +1,11 @@
-version: '2.1'
+version: '2'
 services:
   nzbget:
     container_name: nzbget
     image: linuxserver/nzbget
     restart: always
-    network_mode: host
+    ports:
+      - 6789:6789
     environment:
       - TZ=GB
       - PUID=0
@@ -13,6 +14,13 @@ services:
       - /config/nzbget:/config
       - /storage:/storage
       - /downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=6789"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/nzbget/,/nzbget"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
 
   plexmediaserver:
     container_name: plexmediaserver
@@ -36,6 +44,19 @@ services:
     devices:
       - /dev/dri:/dev/dri
 
+  traefik:
+    container_name: traefik
+    image: traefik:alpine
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /config/traefik:/config
+      - /config/traefik/traefik.toml:/etc/traefik/traefik.toml
+      - /config/traefik/acme.json:/acme.json
+
   tautulli:
     container_name: tautulli
     image: linuxserver/tautulli
@@ -43,7 +64,7 @@ services:
     depends_on:
       - plexmediaserver
     ports:
-      - "8182:8181"
+      - "8181:8181"
     environment:
       - TZ=GB
       - PUID=0
@@ -51,10 +72,38 @@ services:
     volumes:
       - /config/tautulli:/config
       - /config/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8181"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/plexpy/,/plexpy,/plexpy/home"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer
+    restart: always
+    ports:
+      - "9999:9000"
+    environment:
+      - TZ=GB
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=9000"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
+    command: --no-auth
 
   sonarr:
     container_name: sonarr
-    image: linuxserver/sonarr
+    image: linuxserver/sonarr:preview
     restart: always
     depends_on:
       - hydra2
@@ -70,6 +119,13 @@ services:
       - /config/sonarr:/config
       - /storage/0/TV_Shows:/tv
       - /downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8989"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/sonarr/,/sonarr"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
 
   radarr:
     container_name: radarr
@@ -89,24 +145,40 @@ services:
       - /config/radarr:/config 
       - /storage/0/Videos:/movies 
       - /downloads:/downloads 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=7878"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/radarr/,/radarr"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
 
-  letsencrypt:
-    container_name: letsencrypt
-    image: linuxserver/letsencrypt
+  lidarr:
+    container_name: lidarr
+    image: linuxserver/lidarr
     restart: always
+    depends_on:
+      - hydra2
+      - nzbget
     ports:
-      - "780:80"
-      - "7443:443"
+      - "8686:8686"
     environment:
       - TZ=GB
-      - PUID=33
-      - PGID=33
-      - EMAIL=p.s.hewitt@gmail.com
-      - URL=bastion76.com
-      - SUBDOMAINS=www,13a,hass,xfce,home
+      - PUID=0
+      - PGID=0
     volumes:
-      - /config/webserver:/config
- 
+      - /etc/localtime:/etc/localtime:ro 
+      - /config/lidarr:/config 
+      - /storage/0/lidarr-music:/music
+      - /downloads:/downloads 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8686"
+      - "traefik.protocol=http"
+      - "traefik.frontend.rule=Host:bastion76.com"
+      - "traefik.frontend.rule=PathPrefix:/lidarr/,/lidarr"
+      - "traefik.frontend.auth.basic.usersFile=/config/.htpasswd"
+
   tvheadend:
     container_name: tvheadend
     image: linuxserver/tvheadend
@@ -122,20 +194,6 @@ services:
     devices:
       - "/dev/dri:/dev/dri"
 
-
-  home-assistant:
-    container_name: home-assistant
-    image: homeassistant/home-assistant
-    restart: always
-    network_mode: host
-    environment:
-      - TZ=GB
-      - PUID=0
-      - PGID=0
-    volumes:
-      - /etc/localtime:/etc/localtime:ro 
-      - /config/home-assistant:/config
-      - /storage:/btrfs
 
   watchtower:
     container_name: watchtower
@@ -165,14 +223,14 @@ services:
     volumes:
       - /storage/0/timecapsule/backup:/backup
 
-  #desktop:
-  #  container_name: desktop
-  #  image: consol/centos-xfce-vnc
-  #  ports:
-  #    - "5901:5901"
-  #    - "6901:6901"
-  #  volumes:
-  #    - /storage:/storage
+  desktop:
+    container_name: desktop
+    image: consol/centos-xfce-vnc
+    ports:
+      - "5901:5901"
+      - "6901:6901"
+    volumes:
+      - /storage:/storage
 
   hydra2:
     container_name: hydra2
