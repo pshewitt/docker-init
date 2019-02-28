@@ -208,29 +208,29 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  timecapsule:
-    container_name: timecapsule
-    image: pdouble16/timecapsule
-    restart: always
-    ports:
-      - "548:548"
-    environment:
-      - TZ=GB
-      - PUID=0
-      - PGID=0
-      - VERSION=latest
-      - VOLSIZELIMIT=256000
-    volumes:
-      - /storage/0/timecapsule/backup:/backup
+#  timecapsule:
+#    container_name: timecapsule
+#    image: pdouble16/timecapsule
+#    restart: always
+#    ports:
+#      - "548:548"
+#    environment:
+#      - TZ=GB
+#      - PUID=0
+#      - PGID=0
+#      - VERSION=latest
+#      - VOLSIZELIMIT=256000
+#    volumes:
+#      - /storage/0/timecapsule/backup:/backup
 
-  desktop:
-    container_name: desktop
-    image: consol/centos-xfce-vnc
-    ports:
-      - "5901:5901"
-      - "6901:6901"
-    volumes:
-      - /storage:/storage
+#  desktop:
+#    container_name: desktop
+#    image: consol/centos-xfce-vnc
+#    ports:
+#      - "5901:5901"
+#      - "6901:6901"
+#    volumes:
+#      - /storage:/storage
 
   hydra2:
     container_name: hydra2
