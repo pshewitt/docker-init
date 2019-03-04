@@ -14,6 +14,7 @@ services:
       - /config/nzbget:/config
       - /storage:/storage
       - /downloads:/downloads
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=6789"
@@ -41,6 +42,7 @@ services:
       - /storage/0/tvheadend/dvr-dad:/data/tvrecordings
       - /storage/0/tvheadend/F1:/data/F1
       - /tmp:/tmp
+      - /etc/hosts:/etc/hosts
     devices:
       - /dev/dri:/dev/dri
 
@@ -56,6 +58,7 @@ services:
       - /config/traefik:/config
       - /config/traefik/traefik.toml:/etc/traefik/traefik.toml
       - /config/traefik/acme.json:/acme.json
+      - /etc/hosts:/etc/hosts
 
   tautulli:
     container_name: tautulli
@@ -72,6 +75,7 @@ services:
     volumes:
       - /config/tautulli:/config
       - /config/plexmediaserver/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs:ro
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=8181"
@@ -92,6 +96,7 @@ services:
       - PGID=0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=9000"
@@ -119,6 +124,7 @@ services:
       - /config/sonarr:/config
       - /storage/0/TV_Shows:/tv
       - /downloads:/downloads
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=8989"
@@ -145,6 +151,7 @@ services:
       - /config/radarr:/config 
       - /storage/0/Videos:/movies 
       - /downloads:/downloads 
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=7878"
@@ -171,6 +178,7 @@ services:
       - /config/lidarr:/config 
       - /storage/0/lidarr-music:/music
       - /downloads:/downloads 
+      - /etc/hosts:/etc/hosts
     labels:
       - "traefik.enable=true"
       - "traefik.port=8686"
@@ -191,22 +199,23 @@ services:
     volumes:
       - /config/tvheadend:/config
       - /storage/0/tvheadend:/recordings
+      - /etc/hosts:/etc/hosts
     devices:
       - "/dev/dri:/dev/dri"
 
 
-  watchtower:
-    container_name: watchtower
-    image: v2tec/watchtower
-    restart: always
-    command: --cleanup
-    network_mode: host
-    environment:
-      - TZ=GB
-      - PUID=0
-      - PGID=0
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+#  watchtower:
+#    container_name: watchtower
+#    image: v2tec/watchtower
+#    restart: always
+#    command: --cleanup
+#    network_mode: host
+#    environment:
+#      - TZ=GB
+#      - PUID=0
+#      - PGID=0
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
 
 #  timecapsule:
 #    container_name: timecapsule
@@ -245,3 +254,4 @@ services:
     volumes:
       - /config/hydra2:/config
       - /downloads:/downloads
+      - /etc/hosts:/etc/hosts
